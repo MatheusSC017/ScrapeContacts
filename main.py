@@ -1,27 +1,22 @@
-links = [
-    'https://abes.com.br/',
-    'https://aws.amazon.com/pt/isv/',
-    'https://www.econodata.com.br/maiores-empresas/todo-brasil/software-de-computador',
-]
-
+import os
 from selenium import webdriver
-from bs4 import BeautifulSoup
-import re
+from extract.search import search_and_extract_links
+from extract.contacts import extract_contacts_with_timeout
+from transform.links import get_base_links
 
-for link in links:
-    driver = webdriver.Firefox()
-    driver.get(link)
+search_term = "Empresas de Software"
+api_key = os.environ.get("API_KEY")
+search_engine_id = os.environ.get("SEARCH_ENGINE_ID")
 
-    html_content = driver.page_source
+# extracted_links = search_and_extract_links(search_term, api_key, search_engine_id, 5)
+# base_links = get_base_links(extracted_links)
 
-    soup = BeautifulSoup(html_content, 'html.parser')
-    text_content = ' '.join(soup.stripped_strings)
+driver = webdriver.Firefox()
 
-    email_pattern = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b')
-    phone_pattern = re.compile(r'\+?(?:\d{2})?\s*(?:\d{2})?\s*\d?\s*[\d]{4}[\s-]*[\d]{4}')
+for link in ['https://portal.fazenda.sp.gov.br/', 'https://abes.com.br/', 'https://www.econodata.com.br/']:
+    emails, phones = extract_contacts_with_timeout(link, driver, timeout=15)
 
-    emails = email_pattern.findall(text_content)
-    phones = phone_pattern.findall(text_content)
+    print(link)
 
     print("Emails found:")
     for email in emails:
@@ -31,4 +26,6 @@ for link in links:
     for phone in phones:
         print(f'Phone: {phone}')
 
-    driver.quit()
+driver.quit()
+
+
