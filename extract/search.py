@@ -26,7 +26,7 @@ def search_and_extract_links(search_term, api_key, search_engine_id, num_results
 
 
 if __name__ == "__main__":
-    search_term = "Empresas de Software"
+    search_term = "Energia solar"
     api_key = os.environ.get("API_KEY")
     search_engine_id = os.environ.get("SEARCH_ENGINE_ID")
 

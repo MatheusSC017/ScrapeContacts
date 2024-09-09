@@ -19,7 +19,7 @@ def extract_contacts_worker(link, driver, queue):
         emails = email_pattern.findall(text_content)
         phones = phone_pattern.findall(text_content)
 
-        queue.put((emails, phones))
+        queue.put((list(set(emails)), list(set(phones))))
 
     except TimeoutException:
         print(f"Timeout while loading {link}")
