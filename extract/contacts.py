@@ -1,7 +1,41 @@
 import re
+import logging
+from selenium import webdriver
 from bs4 import BeautifulSoup
 from selenium.common.exceptions import TimeoutException
 from multiprocessing import Process, Queue
+
+logging.basicConfig(filename='extraction.log', level=logging.INFO)
+
+
+def process_link(link):
+    logging.info(f"Processing {link}")
+    driver = webdriver.Firefox()
+    try:
+        emails, phones = extract_contacts_with_timeout(link, driver, timeout=15)
+        logging.info(f"Found {len(emails)} emails and {len(phones)} phones for {link}")
+        return emails, phones
+    except Exception as e:
+        logging.error(f"Error extracting from {link}: {e}")
+        return [], []
+    finally:
+        driver.quit()
+
+
+def extract_contacts_with_timeout(link, driver, timeout=15):
+    queue = Queue()
+    process = Process(target=extract_contacts_worker, args=(link, driver, queue))
+
+    process.start()
+    process.join(timeout=timeout)
+
+    if process.is_alive():
+        process.terminate()
+        process.join()
+        print(f"Timeout while extracting contacts from {link}")
+        return [], []
+
+    return queue.get()
 
 
 def extract_contacts_worker(link, driver, queue):
@@ -27,19 +61,3 @@ def extract_contacts_worker(link, driver, queue):
     except Exception as e:
         print(f"Error: {e}")
         queue.put(([], []))
-
-
-def extract_contacts_with_timeout(link, driver, timeout=15):
-    queue = Queue()
-    process = Process(target=extract_contacts_worker, args=(link, driver, queue))
-
-    process.start()
-    process.join(timeout=timeout)
-
-    if process.is_alive():
-        process.terminate()
-        process.join()
-        print(f"Timeout while extracting contacts from {link}")
-        return [], []
-
-    return queue.get()
