@@ -2,6 +2,7 @@ import os
 import csv
 import argparse
 import logging
+import asyncio
 from extract.search import search_and_extract_links
 from extract.contacts import process_link
 from transform.links import get_base_links
@@ -10,7 +11,7 @@ from transform.links import get_base_links
 logging.basicConfig(level=logging.INFO)
 
 
-def main(search_term, output_path, number_searches, exclude_links):
+async def main(search_term, output_path, number_searches, exclude_links):
     api_key = os.environ.get("API_KEY")
     search_engine_id = os.environ.get("SEARCH_ENGINE_ID")
 
@@ -28,7 +29,7 @@ def main(search_term, output_path, number_searches, exclude_links):
         for link in base_links:
             if link not in exclude_links:
                 try:
-                    emails, phones = process_link(link)
+                    emails, phones = await process_link(link)
                     writer.writerow([link, emails, phones])
                 except Exception as e:
                     logging.error(f"Error processing link {link}: {e}")
@@ -47,4 +48,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.search_term, args.output, args.number, args.exclude)
+    asyncio.run(main(args.search_term, args.output, args.number, args.exclude))
