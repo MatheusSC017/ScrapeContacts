@@ -13,7 +13,7 @@ async def process_link(link):
     logging.info(f"Processing {link}")
     try:
         async with async_playwright() as context_manager:
-            browser = await context_manager.chromium.launch(headless=False)
+            browser = await context_manager.chromium.launch(headless=True)
             page = await browser.new_page()
 
             emails, phones = await extract_contacts_worker(link, page, timeout=20)
@@ -31,7 +31,11 @@ async def extract_contacts_worker(link, page, timeout):
     try:
         page.set_default_navigation_timeout(timeout * 1000)
 
-        await page.goto(link)
+        response = await page.goto(link)
+
+        if response and response.status != 200:
+            logging.info(f"Page not found: {link}")
+            return [], []
 
         last_height = await page.evaluate("document.body.scrollHeight")
         scroll_pause_time = 1
@@ -58,5 +62,5 @@ async def extract_contacts_worker(link, page, timeout):
         return list(set(emails)), list(set(phones))
 
     except Exception as e:
-        print(f"Error: {e}")
+        logging.info(f"Error during extracting from {link}: {e}")
         return [], []
