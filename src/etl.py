@@ -1,17 +1,17 @@
 import os
-import csv
 import argparse
 import logging
 import asyncio
-from extract.search import search_and_extract_links
-from extract.contacts import process_link
-from transform.links import get_base_links
+from src.extract.search import search_and_extract_links
+from src.extract.contacts import process_link
+from src.transform.links import get_base_links
+from src.load.save import save_csv
 
 
 logging.basicConfig(level=logging.INFO)
 
 
-async def main(search_term, output_path, number_searches, exclude_links):
+async def etl_contacts(search_term, output_path, number_searches, exclude_links):
     api_key = os.environ.get("API_KEY")
     search_engine_id = os.environ.get("SEARCH_ENGINE_ID")
 
@@ -23,16 +23,18 @@ async def main(search_term, output_path, number_searches, exclude_links):
 
     base_links = get_base_links(extracted_links)
 
-    with open(output_path, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Link', 'Emails', 'Phones'])
-        for link in base_links:
-            if link not in exclude_links:
-                try:
-                    emails, phones = await process_link(link)
-                    writer.writerow([link, emails, phones])
-                except Exception as e:
-                    logging.error(f"Error processing link {link}: {e}")
+    extracted_contacts = []
+    for link in base_links:
+        if link not in exclude_links:
+            try:
+                emails, phones = await process_link(link)
+                extracted_contacts.append([link, emails, phones])
+            except Exception as e:
+                logging.error(f"Error processing link {link}: {e}")
+
+    save_csv(extracted_contacts, output_path)
+
+    return extracted_contacts
 
 
 if __name__ == "__main__":
@@ -48,4 +50,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    asyncio.run(main(args.search_term, args.output, args.number, args.exclude))
+    asyncio.run(etl_contacts(args.search_term, args.output, args.number, args.exclude))
