@@ -1,4 +1,5 @@
 import os
+import csv
 import argparse
 import logging
 import asyncio
@@ -35,6 +36,12 @@ async def etl_contacts(search_term, output_path, number_searches, exclude_links)
     save_csv(extracted_contacts, output_path)
 
     return extracted_contacts
+
+
+def read_cache(cached_filename):
+    with open(f'cache/{cached_filename}', 'r', newline='') as csvfile:
+        contacts = csv.reader(csvfile, delimiter=' ', quotechar='|')
+        return [contact for contact in contacts]
 
 
 if __name__ == "__main__":

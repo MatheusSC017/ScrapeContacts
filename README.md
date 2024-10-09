@@ -2,6 +2,23 @@
 
 This project aims to be a simple ETL that searches websites using a specific term and collects contact information such as email and phone number. Its functionality was designed to be a tool to easily identify potential customers/leads and extract their contact information for future use.
 
-## Use command
+## Usage
 
-> python src/main.py "Energia Solar" -o contacts.csv" -n 3 -e www.solarenergt_example.com.br
+Use the command below to run the API in the port 5000
+
+> flask --app src run
+
+## Endpoints:
+
+### /
+This endpoint accepts POST and GET methods, you can use these methods to request a contact search based on a specific term and retrieve the last storage search for those terms respectively.
+
+#### POST json parameters
+
+- search_term: Required parameter, represent the term used during the search.
+- number: Optional parameter, that delimit the number of results, the pattern value is 10.
+- exclude: Optional parameter, you can set to exclude specific links from the search.
+
+#### GET json parameters
+
+- cached_search: Required parameter, represent the term used during the search and the name used to save tha cached results.

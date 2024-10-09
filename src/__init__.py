@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_restful import Api, Resource
-from src.etl import etl_contacts
+from src.etl import etl_contacts, read_cache
 import asyncio
 import json
 import unicodedata
@@ -15,6 +15,14 @@ def create_app():
 
 
 class ETLContacts(Resource):
+    def get(self):
+        parameters = json.loads(request.get_json())
+        if 'cached_search' not in parameters.keys():
+            return {}
+
+        contacts = read_cache(parameters['cached_search'])
+        return {contact[0]: contact[1:] for contact in contacts}
+
     def post(self):
         parameters = json.loads(request.get_json())
         if 'search_term' not in parameters.keys():
@@ -25,7 +33,7 @@ class ETLContacts(Resource):
         output_filename = re.sub(r'\s+', '_', no_accents).lower()
 
         contacts = asyncio.run(etl_contacts(parameters['search_term'],
-                                            output_filename,
+                                            f'{output_filename}.csv',
                                             parameters.get('number', 10),
                                             parameters.get('exclude', [])))
 
