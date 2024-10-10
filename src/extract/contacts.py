@@ -1,10 +1,8 @@
 import logging
-from selenium import webdriver
 import asyncio
 from playwright.async_api import async_playwright
 import re
 from bs4 import BeautifulSoup
-from multiprocessing import Process, Queue
 
 logging.basicConfig(filename='extraction.log', level=logging.INFO)
 
