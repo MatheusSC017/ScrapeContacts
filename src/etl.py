@@ -39,9 +39,12 @@ async def etl_contacts(search_term, output_path, number_searches, exclude_links)
 
 
 def read_cache(cached_filename):
-    with open(f'cache/{cached_filename}', 'r', newline='') as csvfile:
-        contacts = csv.reader(csvfile, delimiter=' ', quotechar='|')
-        return [contact for contact in contacts]
+    if os.path.isfile(f'cache/{cached_filename}.csv'):
+        with open(f'cache/{cached_filename}.csv', 'r', newline='') as csvfile:
+            contacts = csv.reader(csvfile, delimiter=' ', quotechar='|')
+            return [contact for contact in contacts]
+    else:
+        return []
 
 
 if __name__ == "__main__":

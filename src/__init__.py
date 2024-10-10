@@ -5,6 +5,7 @@ import asyncio
 import json
 import unicodedata
 import re
+import os
 
 
 def create_app():
@@ -16,11 +17,19 @@ def create_app():
 
 class ETLContacts(Resource):
     def get(self):
-        parameters = json.loads(request.get_json())
+        if request.content_type:
+            parameters = json.loads(request.get_json())
+        else:
+            cached_searches = [search_file[:-4] for search_file in os.listdir('cache')]
+            return {'cached_searches': cached_searches}
+
         if 'cached_search' not in parameters.keys():
             return {}
 
-        contacts = read_cache(parameters['cached_search'])
+        nfkd_str = unicodedata.normalize('NFKD', parameters['cached_search'])
+        no_accents = ''.join([c for c in nfkd_str if not unicodedata.combining(c)])
+        cached_search_filename = re.sub(r'\s+', '_', no_accents).lower()
+        contacts = read_cache(cached_search_filename)
         return {contact[0]: contact[1:] for contact in contacts}
 
     def post(self):
