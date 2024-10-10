@@ -1,0 +1,13 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@2.1.1
+  azure-acr: circleci/azure-acr@0.2.1
+
+workflows:
+  deploy-docker-image:
+    jobs:
+      - azure-acr/build-and-push-image:
+          login-server-name: scrapcontacts.azurecr.io
+          registry-name: scrapcontacts
+          repo: flask-api
