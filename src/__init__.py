@@ -1,11 +1,14 @@
-from flask import Flask, request
-from flask_restful import Api, Resource
-from src.etl import etl_contacts, read_cache
+"""
+Flask API related methods and classes
+"""
 import asyncio
 import json
 import unicodedata
 import re
 import os
+from flask import Flask, request
+from flask_restful import Api, Resource
+from src.etl import etl_contacts, read_cache
 
 
 def create_app():

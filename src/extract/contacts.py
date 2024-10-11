@@ -4,7 +4,7 @@ from playwright.async_api import async_playwright
 import re
 from bs4 import BeautifulSoup
 
-logging.basicConfig(filename='extraction.log', level=logging.INFO)
+logging.basicConfig(filename='/tmp/extraction.log', level=logging.INFO)
 
 
 async def process_link(link):

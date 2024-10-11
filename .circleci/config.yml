@@ -1,13 +1,54 @@
 version: 2.1
 
 orbs:
-  python: circleci/python@2.1.1
-  azure-acr: circleci/azure-acr@0.2.1
+  python: circleci/python@2.2.0
+  gcp-gcr: circleci/gcp-gcr@0.6.1
+  cloudrun: circleci/gcp-cloud-run@1.0.0
+
+jobs:
+  deploy:
+    docker:
+      - image: google/cloud-sdk:latest
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Create app.yaml
+          command: chmod +x ./app.yaml.sh && ./app.yaml.sh > ./app.yaml
+      - run:
+          name: Set up GCloud
+          command: |
+            echo $GCLOUD_SERVICE_KEY | base64 --decode | gcloud auth activate-service-account --key-file=-
+              gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+              gcloud --quiet config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+  test:
+    executor:
+      name: python/default
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies and check code
+          command: |
+            python -m pip install pylint
+            python -m pylint --fail-under=7 --disable=import-error src
 
 workflows:
-  deploy-docker-image:
+  deploy:
     jobs:
-      - azure-acr/build-and-push-image:
-          login-server-name: scrapcontacts.azurecr.io
-          registry-name: scrapcontacts
-          repo: flask-api
+      - test:
+          name: test
+          filters:
+            branches:
+              only:
+                - main
+      - deploy:
+          name: deploy-staging
+          requires:
+            - test
+          post-steps:
+            - run:
+                name: Deploy app
+                command: gcloud app deploy app.yaml
+          filters:
+            branches:
+              only: main
