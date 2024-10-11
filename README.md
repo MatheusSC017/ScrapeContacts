@@ -8,6 +8,14 @@ Use the command below to run the API in the port 5000
 
 > flask --app src run
 
+## Docker
+
+Run the commands below to build and run the container image
+
+> docker build -t scrap_contacts .
+
+> docker run scrap_contacts
+
 ## Endpoints:
 
 ### /
@@ -21,4 +29,4 @@ This endpoint accepts POST and GET methods, you can use these methods to request
 
 #### GET json parameters
 
-- cached_search: Required parameter, represent the term used during the search and the name used to save tha cached results.
+- cached_search: Optional parameter, represent the term used during the search and the name used to save tha cached results. If this parameter is not provided, the endpoint will return a list of all cached results.
