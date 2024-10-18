@@ -2,11 +2,25 @@
 
 This project aims to be a simple ETL that searches websites using a specific term and collects contact information such as email and phone number. Its functionality was designed to be a tool to easily identify potential customers/leads and extract their contact information for future use.
 
+## Required enviroment variables
+
+After setting the variables you will need to start the [Search API](https://console.cloud.google.com/apis/api/customsearch.googleapis.com/)
+
+### API_KEY
+This variable represents the API key of the [GCP credentials](https://console.cloud.google.com/apis/credentials).
+
+### SEARCH_ENGINE_ID
+You will need to set up a [Google search engine](https://programmablesearchengine.google.com/) with business search related settings.
+
 ## Usage
 
 Use the command below to run the API in the port 5000
 
 > flask --app src run
+
+You can also run this application through gunicorn using below command, it is configured for port 8000
+
+> gunicorn -b :8080 'src:create_app()'
 
 ## Docker
 
