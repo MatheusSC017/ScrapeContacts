@@ -44,7 +44,7 @@ async def etl_contacts(search_term, output_path, number_searches, exclude_links)
             except Exception as e:
                 logging.error("Error processing link  %s: %s", link, e)
 
-    save_csv(extracted_contacts, output_path)
+    # save_csv(extracted_contacts, output_path)
 
     return extracted_contacts
 
