@@ -1,5 +1,6 @@
-import requests
 import os
+
+import requests
 
 
 def search_and_extract_links(search_term, api_key, search_engine_id, num_results=10):
