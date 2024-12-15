@@ -6,23 +6,26 @@ import re
 
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 from playwright.async_api import async_playwright
 
-if os.path.exists(".env"):
-    load_dotenv(".env")
+if os.path.exists("../.env"):
+    load_dotenv("../.env")
 logging.basicConfig(filename="/tmp/extraction.log", level=logging.INFO)
-openai_client = OpenAI(api_key=os.environ.get("OPENAI_KEY"))
 
 
 async def process_link(link):
     logging.info(f"Processing {link}")
     try:
+        openai_client = OpenAI(api_key=os.environ.get("OPENAI_KEY"))
+
         async with async_playwright() as context_manager:
             browser = await context_manager.chromium.launch(headless=True)
             page = await browser.new_page()
 
-            emails, phones = await extract_contacts_worker(link, page, timeout=20)
+            emails, phones = await extract_contacts_worker(
+                link, page, openai_client, timeout=20
+            )
             logging.info(
                 f"Found {len(emails)} emails and {len(phones)} phones for {link}"
             )
@@ -33,9 +36,11 @@ async def process_link(link):
     except Exception as e:
         logging.error(f"Error extracting from {link}: {e}")
         return [], []
+    except OpenAIError as e:
+        logging.info(f"Error during extracting using OpenAI: {e}")
 
 
-async def extract_contacts_worker(link, page, timeout):
+async def extract_contacts_worker(link, page, openai_client, timeout):
     try:
         page.set_default_navigation_timeout(timeout * 1000)
 
@@ -68,8 +73,12 @@ async def extract_contacts_worker(link, page, timeout):
             r"\+?(?:\d{2})?\s*(?:\d{2})?\s*\d?\s*[\d]{4}[\s-]*[\d]{4}"
         )
 
-        emails = extract_from_context(email_pattern, text_content, "e-mails")
-        phones = extract_from_context(phone_pattern, text_content, "phones")
+        emails = extract_from_context(
+            email_pattern, text_content, "e-mails", openai_client
+        )
+        phones = extract_from_context(
+            phone_pattern, text_content, "phones", openai_client
+        )
 
         unique_emails = list(set([email for email in emails]))
         unique_phones = list(set([phone for phone in phones]))
@@ -81,7 +90,7 @@ async def extract_contacts_worker(link, page, timeout):
         return [], []
 
 
-def extract_from_context(pattern, text, contact_type):
+def extract_from_context(pattern, text, contact_type, openai_client):
     matches = []
     for match in pattern.finditer(text):
         start, end = match.start(), match.end()

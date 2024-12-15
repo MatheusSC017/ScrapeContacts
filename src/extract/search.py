@@ -21,7 +21,7 @@ def search_and_extract_links(search_term, api_key, search_engine_id, num_results
 
         return extracted_links
     else:
-        return {"error": response.content}
+        raise requests.RequestException({"error": response.content})
 
 
 if __name__ == "__main__":
@@ -33,7 +33,10 @@ if __name__ == "__main__":
     api_key = os.environ.get("API_KEY")
     search_engine_id = os.environ.get("SEARCH_ENGINE_ID")
 
-    extracted_links = search_and_extract_links(
-        search_term, api_key, search_engine_id, 3
-    )
-    print(extracted_links)
+    try:
+        extracted_links = search_and_extract_links(
+            search_term, api_key, search_engine_id, 3
+        )
+        print(extracted_links)
+    except Exception as e:
+        print(e)
