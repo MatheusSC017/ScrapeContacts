@@ -4,12 +4,16 @@ Flask API related methods and classes
 
 import asyncio
 import json
-import unicodedata
 import re
-import os
+import unicodedata
+
 from flask import Flask, request
 from flask_restful import Api, Resource
+
 from src.etl import etl_contacts, read_cache
+
+cache = {}
+cache_limit = 100
 
 
 def create_app():
@@ -24,8 +28,7 @@ class ETLContacts(Resource):
         if request.content_type:
             parameters = json.loads(request.get_json())
         else:
-            cached_searches = [search_file[:-4] for search_file in os.listdir("cache")]
-            return {"cached_searches": cached_searches}
+            return {"cached_searches": list(cache.keys())}
 
         if "cached_search" not in parameters.keys():
             return {}
@@ -33,7 +36,8 @@ class ETLContacts(Resource):
         nfkd_str = unicodedata.normalize("NFKD", parameters["cached_search"])
         no_accents = "".join([c for c in nfkd_str if not unicodedata.combining(c)])
         cached_search_filename = re.sub(r"\s+", "_", no_accents).lower()
-        contacts = read_cache(cached_search_filename)
+
+        contacts = cache.get(cached_search_filename, {})
         return {contact[0]: contact[1:] for contact in contacts}
 
     def post(self):
@@ -53,5 +57,10 @@ class ETLContacts(Resource):
                 parameters.get("exclude", []),
             )
         )
+
+        if len(cache) == cache_limit:
+            del cache[cache.keys()[0]]
+
+        cache[output_filename] = contacts
 
         return {contact[0]: contact[1:] for contact in contacts}
