@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 if os.path.exists(".env"):
     load_dotenv()
-logging.basicConfig(filename="/tmp/extraction.log", level=logging.INFO)
+logging.basicConfig(filename="extraction.log", level=logging.INFO)
 
 
 async def etl_contacts(search_term, output_path, number_searches, exclude_links):
