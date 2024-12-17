@@ -19,7 +19,7 @@ if __name__ == "__main__":
         "-o", "--output", type=str, help="Output CSV file name", default="contacts.csv"
     )
     parser.add_argument(
-        "-n", "--number", type=int, help="Number of results expected", default=10
+        "-n", "--number", type=int, help="Number of results expected", default=3
     )
     parser.add_argument(
         "-e",
@@ -33,4 +33,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    asyncio.run(etl_contacts(args.search_term, args.output, args.number, args.exclude))
+    asyncio.run(etl_contacts(args.search_term, args.number, args.exclude, args.output))
