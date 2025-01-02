@@ -12,6 +12,13 @@ This variable represents the API key of the [GCP credentials](https://console.cl
 ### SEARCH_ENGINE_ID
 You will need to set up a [Google search engine](https://programmablesearchengine.google.com/) with business search related settings.
 
+### OPENAI_KEY
+Create an API key to use the GPT model through the OPENAI [OpenAI docs](https://platform.openai.com/docs/api-reference/introduction)
+
+## CLI
+
+> python cli.py "Termo de Busca"
+
 ## Usage
 
 Use the command below to run the API in the port 5000
