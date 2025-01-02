@@ -52,7 +52,6 @@ class ETLContacts(Resource):
         contacts = asyncio.run(
             etl_contacts(
                 parameters["search_term"],
-                f"{output_filename}.csv",
                 parameters.get("number", 10),
                 parameters.get("exclude", []),
             )

@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 
+import requests
 from dotenv import load_dotenv
 
 from src.extract.contacts import process_link
@@ -16,35 +17,32 @@ if os.path.exists(".env"):
     load_dotenv()
 logging.basicConfig(filename="extraction.log", level=logging.INFO)
 
+API_KEY = os.environ.get("API_KEY")
+SEARCH_ENGINE_ID = os.environ.get("SEARCH_ENGINE_ID")
 
-async def etl_contacts(search_term, output_path, number_searches, exclude_links):
-    api_key = os.environ.get("API_KEY")
-    search_engine_id = os.environ.get("SEARCH_ENGINE_ID")
 
+async def etl_contacts(search_term, number_searches, exclude_links, output_path=None):
     try:
         extracted_links = search_and_extract_links(
-            search_term, api_key, search_engine_id, number_searches
+            search_term, API_KEY, SEARCH_ENGINE_ID, number_searches
         )
 
-        if "error" in extracted_links:
-            raise Exception(extracted_links)
-    except Exception as e:
-        print("Error extracting links: %s", e)
-        logging.error("Error extracting links: %s", e)
-        exit(1)
+        base_links = get_base_links(extracted_links)
 
-    base_links = get_base_links(extracted_links)
-
-    extracted_contacts = []
-    for link in base_links:
-        if link not in exclude_links:
-            try:
+        extracted_contacts = []
+        for link in base_links:
+            if link not in exclude_links:
                 emails, phones = await process_link(link)
                 extracted_contacts.append([link, emails, phones])
-            except Exception as e:
-                logging.error("Error processing link  %s: %s", link, e)
+    except requests.RequestException as e:
+        print("Error extracting contacts: %s", e)
+        logging.error("Error extracting contacts: %s", e)
+        exit(1)
+    except Exception as e:
+        logging.error("Error processing link  %s: %s", link, e)
 
-    # save_csv(extracted_contacts, output_path)
+    if output_path:
+        save_csv(extracted_contacts, output_path)
 
     return extracted_contacts
 
@@ -56,5 +54,4 @@ def read_cache(cached_filename):
         ) as csvfile:
             contacts = csv.reader(csvfile, delimiter=" ", quotechar="|")
             return list(contacts)
-    else:
-        return []
+    return []
